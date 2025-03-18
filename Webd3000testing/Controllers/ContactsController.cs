@@ -36,10 +36,15 @@ namespace Webd3000testing.Controllers
                 return BadRequest("First Name is invalid.");
             }
 
-            //Validation:
             if (string.IsNullOrEmpty(contact.LastName))
             {
                 return BadRequest("Last Name is invalid.");
+            }
+
+      
+            if (string.IsNullOrEmpty(contact.Email))
+            {
+                return BadRequest("Email is invalid.");
             }
 
 
