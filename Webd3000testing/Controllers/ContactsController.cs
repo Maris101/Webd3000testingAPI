@@ -30,6 +30,8 @@ namespace Webd3000testing.Controllers
         [HttpPost]
         public IActionResult Post(Contact contact)
         {
+
+
             //Validation:
             if (string.IsNullOrEmpty(contact.FirstName))
             {
