@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Azure.Storage.Queues;
+using System.Runtime.InteropServices.Marshalling;
+using System.Text.Json;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Webd3000testing.Controllers
@@ -28,31 +31,45 @@ namespace Webd3000testing.Controllers
 
 
         [HttpPost]
-        public IActionResult Post(Contact contact)
+        public async Task <IActionResult> Post(Contact contact)
         {
 
-            //Validation:
-            if (string.IsNullOrEmpty(contact.FirstName))
+            //Validation classes: 
+            //https://learn.microsoft.com/en-us/dotnet/api/system.componentmodel.dataannotations?view=net-9.0
+
+            //This uses the validation inside Contact.cs
+            if (ModelState.IsValid == false)
             {
-                return BadRequest("First Name is invalid.");
+                return BadRequest(ModelState);
             }
 
-            if (string.IsNullOrEmpty(contact.LastName))
+            //
+            // Post contact to queue
+            //
+
+            string queueName = "contacts";
+
+            // Get connection string from secrets.json
+            string? connectionString = _configuration["AzureStorageConnectionString"];
+
+            if (string.IsNullOrEmpty(connectionString))
             {
-                return BadRequest("Last Name is invalid.");
+                return BadRequest("An error was encountered");
             }
 
-      
-            if (string.IsNullOrEmpty(contact.Email))
-            {
-                return BadRequest("Email is invalid.");
-            }
+            QueueClient queueClient = new QueueClient(connectionString, queueName);
+
+            // serialize an object to json
+            string message = JsonSerializer.Serialize(contact);
+
+            // send string message to queue
+            await queueClient.SendMessageAsync(message);
+
+            
+            //await queueClient.SendMessageAsync("Hello from the API App!");
 
 
-
-
-
-            return Ok("Hello" + contact.FirstName + "from the Contacts Controller - POST");
+            return Ok("Sucess - message posted to Storage Queue");
         }
 
 
