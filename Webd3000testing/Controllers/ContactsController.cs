@@ -3,6 +3,7 @@ using System.Runtime.InteropServices.Marshalling;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Text;
 
 namespace Webd3000testing.Controllers
 {
@@ -13,7 +14,7 @@ namespace Webd3000testing.Controllers
 
         private readonly ILogger<ContactsController> _logger;
         private readonly IConfiguration _configuration;
-        
+
 
         public ContactsController(ILogger<ContactsController> logger, IConfiguration configuration)
         {
@@ -31,7 +32,7 @@ namespace Webd3000testing.Controllers
 
 
         [HttpPost]
-        public async Task <IActionResult> Post(Contact contact)
+        public async Task<IActionResult> Post(Contact contact)
         {
 
             //Validation classes: 
@@ -62,11 +63,12 @@ namespace Webd3000testing.Controllers
             // serialize an object to json
             string message = JsonSerializer.Serialize(contact);
 
-            // send string message to queue
-            await queueClient.SendMessageAsync(message);
 
-            
-            //await queueClient.SendMessageAsync("Hello from the API App!");
+            // send string message to queue (must encode as base64 to work properly)
+
+            var plainTextBytes = Encoding.UTF8.GetBytes(message);
+
+            await queueClient.SendMessageAsync(Convert.ToBase64String(plainTextBytes));
 
 
             return Ok("Sucess - message posted to Storage Queue");
